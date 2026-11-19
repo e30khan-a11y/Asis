@@ -26,10 +26,12 @@ jobs:
 
     - name: Build Debug APK
       working-directory: voice_agent_android
-      run: gradle assembleDebug
+      run: |
+        gradle clean assembleDebug
+        mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/VoiceAgent_v2_ENGLISH.apk
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: VoiceAgent-Debug-APK
-        path: voice_agent_android/app/build/outputs/apk/debug/*.apk
+        name: VoiceAgent-v2-ENGLISH-NEW
+        path: voice_agent_android/app/build/outputs/apk/debug/VoiceAgent_v2_ENGLISH.apk
