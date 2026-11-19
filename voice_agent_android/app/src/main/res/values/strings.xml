@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Voice Agent AI</string>
+    <string name="accessibility_service_desc">این سرویس به دستیار هوش مصنوعی اجازه می‌دهد عناصر صفحه را بخواند، لمس‌ها و تایپ‌ها را برای کنترل بدون دست شبیه‌سازی کند.</string>
+</resources>

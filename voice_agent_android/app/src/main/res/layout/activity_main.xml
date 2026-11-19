@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="دستیار صوتی و کنترل کامل گوشی"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="کنترل کامل گوشی بدون دست با فرامین صوتی و بینایی هوش مصنوعی"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- API Key Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="کلید Gemini API:"
+            android:textColor="#4285F4"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <EditText
+                android:id="@+id/etApiKey"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="#1E1E1E"
+                android:textColor="#FFFFFF"
+                android:hint="AIzaSy..."
+                android:textColorHint="#666666"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:inputType="textPassword"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btnSaveApiKey"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:text="ذخیره"
+                android:backgroundTint="#4285F4"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <!-- Permissions Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="دسترسی‌های لازم:"
+            android:textColor="#FBBC05"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnAccessibility"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="۱. فعال‌سازی سرویس دسترسی ⚠️"
+            android:backgroundTint="#2D2D2D"
+            android:textColor="#FFFFFF"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btnOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="۲. مجوز نمایش روی برنامه‌ها ⚠️"
+            android:backgroundTint="#2D2D2D"
+            android:textColor="#FFFFFF"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btnMicPermission"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="۳. درخواست مجوز میکروفون ⚠️"
+            android:backgroundTint="#2D2D2D"
+            android:textColor="#FFFFFF"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Status Summary -->
+        <TextView
+            android:id="@+id/tvStatusSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="در حال بررسی دسترسی‌ها..."
+            android:textColor="#E0E0E0"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Start/Stop Floating Button -->
+        <Button
+            android:id="@+id/btnToggleService"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="شروع دستیار شناور 🚀"
+            android:backgroundTint="#34A853"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:enabled="false" />
+
+    </LinearLayout>
+</ScrollView>
