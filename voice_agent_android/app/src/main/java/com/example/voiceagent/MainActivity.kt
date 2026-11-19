@@ -63,16 +63,16 @@ class MainActivity : AppCompatActivity() {
             if (key.isNotEmpty()) {
                 val prefs = getSharedPreferences("voice_agent_prefs", Context.MODE_PRIVATE)
                 prefs.edit().putString("gemini_api_key", key).apply()
-                Toast.makeText(this, "کلید جمینای ذخیره شد", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Gemini API Key saved", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "لطفاً کلید API را وارد کنید", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter Gemini API Key", Toast.LENGTH_SHORT).show()
             }
         }
 
         btnAccessibility.setOnClickListener {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             startActivity(intent)
-            Toast.makeText(this, "در لیست، برنامه Voice Agent را پیدا و فعال کنید", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Find and enable Voice Agent in the list", Toast.LENGTH_LONG).show()
         }
 
         btnOverlay.setOnClickListener {
@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
                     )
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this, "دسترسی دکمه شناور قبلاً داده شده است", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Overlay permission already granted", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
                     PERMISSION_REQ_RECORD_AUDIO
                 )
             } else {
-                Toast.makeText(this, "دسترسی میکروفون داده شده است", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Microphone permission already granted", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -111,23 +111,23 @@ class MainActivity : AppCompatActivity() {
         val hasOverlay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) Settings.canDrawOverlays(this) else true
         val hasMic = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
-        btnAccessibility.text = if (hasAccessibility) "۱. سرویس دسترسی: فعال ✅" else "۱. فعال‌سازی سرویس دسترسی ⚠️"
-        btnOverlay.text = if (hasOverlay) "۲. نمایش روی سایر برنامه‌ها: فعال ✅" else "۲. مجوز نمایش روی برنامه‌ها ⚠️"
-        btnMicPermission.text = if (hasMic) "۳. دسترسی میکروفون: مجاز ✅" else "۳. درخواست مجوز میکروفون ⚠️"
+        btnAccessibility.text = if (hasAccessibility) "1. Accessibility Service: Active ✅" else "1. Enable Accessibility Service ⚠️"
+        btnOverlay.text = if (hasOverlay) "2. Display Over Other Apps: Granted ✅" else "2. Allow Display Over Other Apps ⚠️"
+        btnMicPermission.text = if (hasMic) "3. Microphone Permission: Granted ✅" else "3. Request Microphone Permission ⚠️"
 
         val allReady = hasAccessibility && hasOverlay && hasMic
         btnToggleService.isEnabled = allReady
 
         if (FloatingOverlayService.isRunning) {
-            btnToggleService.text = "توقف دستیار شناور ⏹️"
+            btnToggleService.text = "Stop Floating Assistant ⏹️"
         } else {
-            btnToggleService.text = "شروع دستیار شناور 🚀"
+            btnToggleService.text = "Start Floating Assistant 🚀"
         }
 
         statusSummary.text = if (allReady) {
-            "همه دسترسی‌ها آماده است. می‌توانید دکمه شناور را فعال کنید."
+            "All permissions granted. Ready to start floating assistant."
         } else {
-            "لطفاً هر سه دسترسی بالا را فعال کنید تا برنامه بتواند گوشی را کنترل کند."
+            "Please enable all three permissions above to allow the assistant to control the screen."
         }
     }
 
@@ -135,15 +135,15 @@ class MainActivity : AppCompatActivity() {
         val serviceIntent = Intent(this, FloatingOverlayService::class.java)
         if (FloatingOverlayService.isRunning) {
             stopService(serviceIntent)
-            btnToggleService.text = "شروع دستیار شناور 🚀"
+            btnToggleService.text = "Start Floating Assistant 🚀"
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(serviceIntent)
             } else {
                 startService(serviceIntent)
             }
-            btnToggleService.text = "توقف دستیار شناور ⏹️"
-            Toast.makeText(this, "دکمه شناور روی صفحه ظاهر شد!", Toast.LENGTH_SHORT).show()
+            btnToggleService.text = "Stop Floating Assistant ⏹️"
+            Toast.makeText(this, "Floating assistant started on screen!", Toast.LENGTH_SHORT).show()
             finish() // Minimize app so user sees their home screen
         }
     }
