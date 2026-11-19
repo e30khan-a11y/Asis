@@ -137,7 +137,7 @@ class FloatingOverlayService : Service() {
             WindowManager.LayoutParams.TYPE_PHONE
         }
 
-        val btnSize = dpToPx(72f) // اندازه ۷۲ دی‌پی - بزرگ، برجسته و خوش‌دست
+        val btnSize = dpToPx(72f) // اندازه ۷۲ دی‌پی - بزرگ، مشخص و بسیار راحت برای لمس
         val iconSize = dpToPx(38f)
 
         val params = WindowManager.LayoutParams(
@@ -188,7 +188,7 @@ class FloatingOverlayService : Service() {
 
             val bg = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(Color.parseColor("#2563EB")) // آبی غنی
+                setColor(Color.parseColor("#2563EB")) // آبی پررنگ
                 setStroke(dpToPx(3.5f), Color.parseColor("#93C5FD")) // حلقه نوری روشن
             }
             background = bg
@@ -198,7 +198,7 @@ class FloatingOverlayService : Service() {
             }
         }
 
-        // آیکون میکروفون برداری اختصاصی
+        // آیکون میکروفون برداری
         micIconView = ImageView(this).apply {
             val lp = FrameLayout.LayoutParams(iconSize, iconSize).apply {
                 gravity = Gravity.CENTER
@@ -211,7 +211,7 @@ class FloatingOverlayService : Service() {
         rootLayout?.addView(statusTextView)
         rootLayout?.addView(micButton)
 
-        // مدیریت لمس و جابه‌جایی
+        // مدیریت لمس و کشیدن دکمه
         var initialX = 0
         var initialY = 0
         var initialTouchX = 0f
