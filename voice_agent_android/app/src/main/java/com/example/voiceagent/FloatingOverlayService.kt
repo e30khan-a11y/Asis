@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -21,20 +22,15 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
-import android.view.View
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.core.app.NotificationCompat
 
 class FloatingOverlayService : Service() {
 
     private lateinit var windowManager: WindowManager
-    private var rootLayout: LinearLayout? = null
-    private var statusTextView: TextView? = null
     private var micButton: FrameLayout? = null
     private var micIconView: ImageView? = null
 
@@ -80,11 +76,19 @@ class FloatingOverlayService : Service() {
 
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("دستیار صوتی فعال است")
-            .setContentText("دکمه بزرگ میکروفون روی صفحه آماده است")
+            .setContentText("دکمه میکروفون شناور آماده است")
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .build()
 
-        startForeground(NOTIFICATION_ID, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
     }
 
     private fun setupAgentBrain() {
@@ -92,35 +96,27 @@ class FloatingOverlayService : Service() {
         val apiKey = prefs.getString("gemini_api_key", "") ?: ""
 
         agentBrain = AgentBrain(apiKey) { statusText ->
-            updateStatusText(statusText)
-            if (statusText.contains("مرحله") || statusText.contains("انجام")) {
-                setMicVisualState(MicState.ACTING)
-            } else if (statusText.contains("تحلیل")) {
-                setMicVisualState(MicState.PROCESSING)
+            if (statusText.contains("مرحله") || statusText.contains("انجام") || statusText.contains("تحلیل")) {
+                setMicVisualState(MicState.WORKING)
             } else if (statusText.contains("موفقیت") || statusText.contains("پایان") || statusText.contains("خطا")) {
                 mainHandler.postDelayed({
                     setMicVisualState(MicState.IDLE)
-                    updateStatusText("لمس برای صحبت 🎙️")
-                }, 3000)
+                }, 2000)
             }
         }
 
         speechManager = SpeechManager(
             context = this,
             onResult = { voiceText ->
-                updateStatusText("فرمان: $voiceText")
-                setMicVisualState(MicState.PROCESSING)
+                setMicVisualState(MicState.WORKING)
                 agentBrain?.executeGoal(voiceText)
             },
             onError = { errorMsg ->
-                updateStatusText(errorMsg)
                 mainHandler.postDelayed({
                     setMicVisualState(MicState.IDLE)
-                    updateStatusText("لمس برای صحبت 🎙️")
-                }, 2500)
+                }, 2000)
             },
             onReady = {
-                updateStatusText("گوش می‌دهم... صحبت کنید")
                 setMicVisualState(MicState.LISTENING)
             }
         )
@@ -129,7 +125,6 @@ class FloatingOverlayService : Service() {
     @SuppressLint("ClickableViewAccessibility")
     private fun createFloatingWidget() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-
         val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
@@ -137,12 +132,12 @@ class FloatingOverlayService : Service() {
             WindowManager.LayoutParams.TYPE_PHONE
         }
 
-        val btnSize = dpToPx(72f) // اندازه ۷۲ دی‌پی - بزرگ، مشخص و بسیار راحت برای لمس
+        val btnSize = dpToPx(72f)
         val iconSize = dpToPx(38f)
 
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            btnSize,
+            btnSize,
             layoutType,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
@@ -152,53 +147,18 @@ class FloatingOverlayService : Service() {
             y = dpToPx(200f)
         }
 
-        rootLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            clipChildren = false
-            clipToPadding = false
-        }
-
-        // برچسب وضعیت بالای دکمه
-        statusTextView = TextView(this).apply {
-            text = "لمس برای صحبت 🎙️"
-            setTextColor(Color.WHITE)
-            textSize = 13f
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
-            setPadding(dpToPx(14f), dpToPx(8f), dpToPx(14f), dpToPx(8f))
-            val bg = GradientDrawable().apply {
-                setColor(Color.parseColor("#EE1E293B"))
-                cornerRadius = dpToPx(20f).toFloat()
-                setStroke(dpToPx(1.5f), Color.parseColor("#475569"))
-            }
-            background = bg
-            val lp = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dpToPx(10f)
-            }
-            layoutParams = lp
-        }
-
-        // دکمه بزرگ میکروفون
         micButton = FrameLayout(this).apply {
-            val lp = LinearLayout.LayoutParams(btnSize, btnSize)
-            layoutParams = lp
-
             val bg = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(Color.parseColor("#2563EB")) // آبی پررنگ
-                setStroke(dpToPx(3.5f), Color.parseColor("#93C5FD")) // حلقه نوری روشن
+                setColor(Color.parseColor("#4B5563")) // IDLE: Gray
+                setStroke(dpToPx(3.5f), Color.parseColor("#9CA3AF")) // Gray border
             }
             background = bg
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                elevation = dpToPx(12f).toFloat()
+                elevation = dpToPx(10f).toFloat()
             }
         }
 
-        // آیکون میکروفون برداری
         micIconView = ImageView(this).apply {
             val lp = FrameLayout.LayoutParams(iconSize, iconSize).apply {
                 gravity = Gravity.CENTER
@@ -206,12 +166,9 @@ class FloatingOverlayService : Service() {
             layoutParams = lp
             setImageDrawable(MicrophoneVectorDrawable())
         }
+
         micButton?.addView(micIconView)
 
-        rootLayout?.addView(statusTextView)
-        rootLayout?.addView(micButton)
-
-        // مدیریت لمس و کشیدن دکمه
         var initialX = 0
         var initialY = 0
         var initialTouchX = 0f
@@ -237,7 +194,7 @@ class FloatingOverlayService : Service() {
                     }
                     params.x = initialX + dx
                     params.y = initialY + dy
-                    windowManager.updateViewLayout(rootLayout, params)
+                    windowManager.updateViewLayout(v, params)
                     true
                 }
                 MotionEvent.ACTION_UP -> {
@@ -256,50 +213,42 @@ class FloatingOverlayService : Service() {
             }
         }
 
-        windowManager.addView(rootLayout, params)
+        windowManager.addView(micButton, params)
     }
 
     private fun onMicClicked() {
         setMicVisualState(MicState.LISTENING)
-        updateStatusText("در حال باز کردن میکروفون...")
         mainHandler.post {
             speechManager?.startListening()
         }
     }
 
-    private enum class MicState { IDLE, LISTENING, PROCESSING, ACTING }
+    private enum class MicState {
+        IDLE,
+        LISTENING,
+        WORKING
+    }
 
     private fun setMicVisualState(state: MicState) {
         mainHandler.post {
             val bg = micButton?.background as? GradientDrawable ?: return@post
             when (state) {
                 MicState.IDLE -> {
-                    bg.setColor(Color.parseColor("#2563EB")) // آبی
-                    bg.setStroke(dpToPx(3.5f), Color.parseColor("#93C5FD"))
+                    bg.setColor(Color.parseColor("#4B5563")) // Gray
+                    bg.setStroke(dpToPx(3.5f), Color.parseColor("#9CA3AF")) // Gray border
                     micButton?.animate()?.scaleX(1.0f)?.scaleY(1.0f)?.setDuration(200)?.start()
                 }
                 MicState.LISTENING -> {
-                    bg.setColor(Color.parseColor("#DC2626")) // قرمز براق
-                    bg.setStroke(dpToPx(4f), Color.parseColor("#FECACA"))
-                    micButton?.animate()?.scaleX(1.15f)?.scaleY(1.15f)?.setDuration(250)?.start()
+                    bg.setColor(Color.parseColor("#10B981")) // Green
+                    bg.setStroke(dpToPx(3.5f), Color.parseColor("#6EE7B7"))
+                    micButton?.animate()?.scaleX(1.12f)?.scaleY(1.12f)?.setDuration(200)?.start()
                 }
-                MicState.PROCESSING -> {
-                    bg.setColor(Color.parseColor("#D97706")) // کهربایی/زرد
-                    bg.setStroke(dpToPx(3.5f), Color.parseColor("#FDE68A"))
-                    micButton?.animate()?.scaleX(1.05f)?.scaleY(1.05f)?.setDuration(200)?.start()
-                }
-                MicState.ACTING -> {
-                    bg.setColor(Color.parseColor("#16A34A")) // سبز
-                    bg.setStroke(dpToPx(3.5f), Color.parseColor("#BBF7D0"))
+                MicState.WORKING -> {
+                    bg.setColor(Color.parseColor("#EF4444")) // Red
+                    bg.setStroke(dpToPx(3.5f), Color.parseColor("#FCA5A5"))
                     micButton?.animate()?.scaleX(1.05f)?.scaleY(1.05f)?.setDuration(200)?.start()
                 }
             }
-        }
-    }
-
-    private fun updateStatusText(text: String) {
-        mainHandler.post {
-            statusTextView?.text = text
         }
     }
 
@@ -307,8 +256,8 @@ class FloatingOverlayService : Service() {
         super.onDestroy()
         isRunning = false
         speechManager?.stopListening()
-        if (rootLayout != null) {
-            windowManager.removeView(rootLayout)
+        if (micButton != null) {
+            windowManager.removeView(micButton)
         }
     }
 
@@ -317,6 +266,7 @@ class FloatingOverlayService : Service() {
             color = Color.WHITE
             style = Paint.Style.FILL
         }
+
         private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             style = Paint.Style.STROKE
@@ -330,6 +280,7 @@ class FloatingOverlayService : Service() {
             if (w <= 0 || h <= 0) return
 
             strokePaint.strokeWidth = w * 0.10f
+
             val cx = bounds.left + w / 2f
             val cy = bounds.top + h / 2f
 
