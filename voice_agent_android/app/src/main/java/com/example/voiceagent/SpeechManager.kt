@@ -22,7 +22,7 @@ class SpeechManager(
 
     fun startListening() {
         if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-            onError("سرویس تشخیص گفتار روی این گوشی فعال نیست")
+            onError("Speech recognition service unavailable on device")
             return
         }
 
@@ -49,10 +49,14 @@ class SpeechManager(
 
                 override fun onError(error: Int) {
                     val message = when (error) {
-                        SpeechRecognizer.ERROR_NO_MATCH -> "صدایی تشخیص داده نشد"
-                        SpeechRecognizer.ERROR_NETWORK -> "خطای اتصال اینترنت برای تشخیص گفتار"
-                        SpeechRecognizer.ERROR_AUDIO -> "خطای ضبط صدا"
-                        else -> "خطا در تشخیص گفتار: $error"
+                        SpeechRecognizer.ERROR_NO_MATCH -> "No speech detected"
+                        SpeechRecognizer.ERROR_NETWORK -> "Network connection error"
+                        SpeechRecognizer.ERROR_AUDIO -> "Audio recording issue"
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Speech input timeout"
+                        SpeechRecognizer.ERROR_SERVER -> "Recognition server error"
+                        SpeechRecognizer.ERROR_CLIENT -> "Client-side recognition error"
+                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions for recording"
+                        else -> "Recognition error: $error"
                     }
                     Log.w(TAG, message)
                     onError(message)
@@ -65,7 +69,7 @@ class SpeechManager(
                         Log.i(TAG, "Recognized text: $text")
                         onResult(text)
                     } else {
-                        onError("متنی دریافت نشد")
+                        onError("No speech detected")
                     }
                 }
 
